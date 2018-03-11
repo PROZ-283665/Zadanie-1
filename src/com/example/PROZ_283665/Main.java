@@ -1,12 +1,8 @@
 package com.example.PROZ_283665;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -22,6 +18,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+
 /**
  * Moja klasa implementujaca proste Okienko Logowania
  * 
@@ -31,41 +28,42 @@ import javafx.util.Pair;
  */
 public class Main extends Application {
 
-	private static Map<String, List<Pair<String, String>>> mapSrodoPairUserPass = new HashMap<>();
+	private static Map<String, Map<String, String>> mapSrodoPairUserPass = new HashMap<>();
 	private Dialog<Pair<String, String>> dialog = new Dialog<>();
-	
+
 	/**
 	 * Glowna metoda tej klasy, uruchamia okienko
 	 * 
-	 * @param args - przekazywane bezposrednio do javafx.application.Application.launch(String[] args)
+	 * @param args
+	 *            - przekazywane bezposrednio do
+	 *            javafx.application.Application.launch(String[] args)
 	 */
 	public static void main(String[] args) {
 		launch(args);
 	}
-	
-	
+
 	/**
 	 * Inicjalizuje srodowiska i uzytkowników z haslami
 	 */
 	@Override
 	public void init() {
-		List<Pair<String, String>> prodList = new ArrayList<Pair<String, String>>();
-		prodList.add(new Pair<>("adam.nowak", "nowaczek"));
-		prodList.add(new Pair<>("ewa.cudna", "cudeńko"));
-		prodList.add(new Pair<>("jan.kowalski", "kowal123"));
-		
-		List<Pair<String, String>> testList = new ArrayList<Pair<String, String>>();
-		testList.add(new Pair<>("adrianna.zielonka", "zieleninka"));
-		testList.add(new Pair<>("adrian.wesołek", "pass123"));
-		
-		List<Pair<String, String>> deweList = new ArrayList<Pair<String, String>>();
-		deweList.add(new Pair<>("karolina.mirna", "pass123"));
-		deweList.add(new Pair<>("jacek.narcyz", "password1"));
-		deweList.add(new Pair<>("alicja.piernik", "toruński"));
-		
-		mapSrodoPairUserPass.put("Produkcyjne", prodList);
-		mapSrodoPairUserPass.put("Testowe", testList);
-		mapSrodoPairUserPass.put("Deweloperskie", deweList);
+		Map<String, String> prodMap = new HashMap<String, String>();
+		prodMap.put("adam.nowak", "nowaczek");
+		prodMap.put("ewa.cudna", "cudeńko");
+		prodMap.put("jan.kowalski", "kowal123");
+
+		Map<String, String> testMap = new HashMap<String, String>();
+		testMap.put("adrianna.zielonka", "zieleninka");
+		testMap.put("adrian.wesołek", "pass123");
+
+		Map<String, String> dewelMap = new HashMap<String, String>();
+		dewelMap.put("karolina.mirna", "pass123");
+		dewelMap.put("jacek.narcyz", "password1");
+		dewelMap.put("alicja.piernik", "toruński");
+
+		mapSrodoPairUserPass.put("Produkcyjne", prodMap);
+		mapSrodoPairUserPass.put("Testowe", testMap);
+		mapSrodoPairUserPass.put("Deweloperskie", dewelMap);
 	}
 
 	/**
@@ -89,19 +87,11 @@ public class Main extends Application {
 		ChoiceBox<String> choiceSrodowisko = new ChoiceBox<>(
 				FXCollections.observableArrayList(mapSrodoPairUserPass.keySet()));
 		choiceSrodowisko.setValue(mapSrodoPairUserPass.keySet().stream().findFirst().get());
-		
-		final Function<ChoiceBox<String>, List<String>> getUzytk = cBox ->
-		{
-			List<String> uzyt = new ArrayList<>();
-			for (Pair<String, String> pair: mapSrodoPairUserPass.get(cBox.getValue())) {
-				uzyt.add(pair.getKey());
-			}
-			return uzyt;
-		};
 
 		ComboBox<String> comboUzytkownik = new ComboBox<>(
-				FXCollections.observableArrayList(getUzytk.apply(choiceSrodowisko)));
+				FXCollections.observableArrayList(mapSrodoPairUserPass.get(choiceSrodowisko.getValue()).keySet()));
 		comboUzytkownik.setEditable(true);
+
 		PasswordField passField = new PasswordField();
 
 		grid.add(new Label("Środowisko:"), 0, 0);
@@ -115,21 +105,20 @@ public class Main extends Application {
 		Node logonButton = dialog.getDialogPane().lookupButton(logonButtonType);
 		logonButton.setDisable(true);
 
-		final ChangeListener<? super String> fieldUpdate = (obs, oldVal, newVal) -> logonButton.setDisable(
-						choiceSrodowisko.getValue() == null
-						|| choiceSrodowisko.getValue().toString().trim().isEmpty()
-						|| comboUzytkownik.getValue() == null
+		final ChangeListener<? super String> fieldUpdate = (obs, oldVal,
+				newVal) -> logonButton.setDisable(choiceSrodowisko.getValue() == null
+						|| choiceSrodowisko.getValue().toString().trim().isEmpty() || comboUzytkownik.getValue() == null
 						|| comboUzytkownik.getValue().toString().trim().isEmpty()
 						|| passField.getText().trim().isEmpty());
 		;
-		
+
 		choiceSrodowisko.valueProperty().addListener(fieldUpdate);
 		choiceSrodowisko.valueProperty().addListener((obs, oldVal, newVal) -> {
-			if(oldVal != newVal) {
+			if (oldVal != newVal) {
 				comboUzytkownik.getItems().clear();
-				comboUzytkownik.getItems().addAll(getUzytk.apply(choiceSrodowisko));
+				comboUzytkownik.getItems().addAll(mapSrodoPairUserPass.get(choiceSrodowisko.getValue()).keySet());
 			}
-			
+
 		});
 		comboUzytkownik.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
 			comboUzytkownik.setValue(comboUzytkownik.getEditor().getText());
@@ -140,20 +129,20 @@ public class Main extends Application {
 		dialog.getDialogPane().setContent(grid);
 
 		dialog.setResultConverter(dialogButton -> {
-			return dialogButton == logonButtonType
-					? new Pair<>(choiceSrodowisko.getSelectionModel().getSelectedItem(),
-							comboUzytkownik.getSelectionModel().getSelectedItem())
-					: null;
+			return dialogButton == logonButtonType && mapSrodoPairUserPass.get(choiceSrodowisko.getValue())
+					.get(comboUzytkownik.getValue()).equals(passField.getText())
+							? new Pair<>(choiceSrodowisko.getValue(), comboUzytkownik.getValue())
+							: null;
 		});
-		
+
 		Optional<Pair<String, String>> result = showAndWait();
 
 		result.ifPresent(srodoUzyt -> System.out
 				.println("Środowisko=" + srodoUzyt.getKey() + ", Użytkownik=" + srodoUzyt.getValue()));
 	}
-	
+
 	public Optional<Pair<String, String>> showAndWait() {
 		return dialog.showAndWait();
 	}
-	
+
 }
