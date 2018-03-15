@@ -129,8 +129,11 @@ public class Main extends Application {
 		dialog.getDialogPane().setContent(grid);
 
 		dialog.setResultConverter(dialogButton -> {
-			return dialogButton == logonButtonType && mapSrodoPairUserPass.get(choiceSrodowisko.getValue())
-					.get(comboUzytkownik.getValue()).equals(passField.getText())
+			Map<String, String> users = mapSrodoPairUserPass.get(choiceSrodowisko.getValue());
+			String user = comboUzytkownik.getValue();
+			return dialogButton == logonButtonType
+					&& users.containsKey(user)
+					&& users.get(user).equals(passField.getText())
 							? new Pair<>(choiceSrodowisko.getValue(), comboUzytkownik.getValue())
 							: null;
 		});
